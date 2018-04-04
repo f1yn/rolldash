@@ -1,5 +1,3 @@
 IMPORT_INJECT;
 
-console.log(`IMPORT_INJECT`);
-
 EXPORT_INJECT;
