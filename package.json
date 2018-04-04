@@ -1,0 +1,16 @@
+{
+  "name": "rolldash",
+  "version": "0.0.1",
+  "description": "A rollup minifier for building minified builds of Lodash for Node.js",
+  "bin": "./build.js",
+  "author": "Flynn Buckingham",
+  "license": "MIT",
+  "dependencies": {
+    "rollup": "^0.57.1",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-replace": "^2.0.0",
+    "rollup-plugin-uglify": "^3.0.0",
+    "semver": "^5.5.0"
+  }
+}
