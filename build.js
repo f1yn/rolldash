@@ -8,13 +8,18 @@
 const path = require('path');
 const fs = require('fs');
 const child_process = require('child_process');
+
 const semver = require('semver');
+const minimist = require('minimist');
 
 const { rollup } = require('rollup');
 const replace = require('rollup-plugin-replace');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const commonjs = require('rollup-plugin-commonjs');
 const uglify = require('rollup-plugin-uglify');
+
+const generateExports = require('./lib/generateExports');
+const defaults = require('./defaults.json');
 
 /**
  * Error helper for missing CLI arguments
@@ -42,36 +47,54 @@ const asyncSpawn = (...args) => new Promise((resolve, reject) => {
 
 /**
  * Main instance
- * @param  {[type]} async [description]
- * @return {[type]} [description]
  */
-(async (version, sourceFile, output) => {
-	if (!version) throw missingArg('version');
-	if (!sourceFile) throw missingArg('sourceFile');
-	if (!output) throw missingArg('output');
+(async () => {
+	const {
+		version, output, config,
+	} = minimist(process.argv.slice(2), {
+		default: defaults,
+		alias: {
+			version: 'v',
+			output: 'o',
+			config: 'c',
+		}
+	});
+
+	if (!version) throw missingArg('lodash version');
+	if (!config) throw missingArg('config filepath');
+	if (!output) throw missingArg('output filepath');
 
 	if (version !== 'latest' && !semver.valid(version)) {
 		throw new Error(`${version} is not a valid package version. Use a valid semver or "latest" to install lodash`);
 	}
 
-	if (!fs.existsSync(path.resolve(sourceFile))) throw new Error(`${sourceFile} is not a valid path`);
+	// attempt to load configuration
+	const configPath = path.resolve(config);
+	if (!fs.existsSync(configPath)) throw new Error(`${configPath} is not a valid path`);
+
+	// load user configuration
+	const { use, compressor } = require(configPath);
+
+	// download specified lodash version to temp directory
+	const tmp = path.join(__dirname, 'tmp');
+	const LODASH_BASE = path.join(tmp, './node_modules/lodash');
 
 	console.log(`fetching lodash@${version}...`);
-	await asyncSpawn('npm', ['i', '--no-save', '--only=prod', `lodash@${version}`]);
+	await asyncSpawn('npm', ['i', '--no-save', '--only=prod', '--prefix', tmp, `lodash@${version}`]);
 
 	// generate list of exports
 	const {
 		EXPORT_LIST,
 		IMPORT_INJECT,
 		EXPORT_INJECT
-	} = require('./generateExports')(require(path.resolve(sourceFile)));
+	} = generateExports(use, LODASH_BASE);
 
 	console.log(`exporting the following Lodash modules: ${EXPORT_LIST.join(', ')}...`);
-
 	console.log(__dirname);
 
+	// build
 	const build = await rollup({
-		input: path.join(__dirname, './module'),
+		input: path.join(__dirname, './lib/module'),
 		plugins: [
 			replace({
 				IMPORT_INJECT,
@@ -83,17 +106,19 @@ const asyncSpawn = (...args) => new Promise((resolve, reject) => {
 				module: true,
 			}),
 			commonjs({
-				include: path.resolve('./node_modules/lodash/**'),
+				include: path.join(tmp, '/**'),
 			}),
-			uglify()
+			uglify({
+				compress: compressor,
+			})
 		],
 	});
 
+	// output
 	await build.write({
 		format: 'cjs',
 		file: output,
 	});
 
 	console.log(`minified build file written to ${path.resolve(output)}`);
-
-})(...Array.from(process.argv).slice(2));
+})().catch(e => console.error(e));

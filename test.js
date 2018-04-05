@@ -1,4 +1,3 @@
-module.exports = [
-	'map',
-	/difference/,
-];
+const _ = require('./_out');
+
+console.log(_);
