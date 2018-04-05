@@ -1,6 +1,6 @@
 {
   "name": "rolldash",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A rollup minifier for building minified builds of Lodash for Node.js",
   "bin": "./build.js",
   "author": "Flynn Buckingham",
