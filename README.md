@@ -1,8 +1,9 @@
 # Rolldash (Node 8+)
 
-This module uses rollup to create a selectively minified build of Lodash using npm
-scripts. This package was made in response to the deprecation of the offical
-`lodash-cli` utility.
+[![npm](https://img.shields.io/npm/v/rolldash.svg)](https://www.npmjs.com/package/rolldash)
+
+This module uses rollup to create a selectively minified build of [lodash](https://www.npmjs.com/package/lodash)
+using npm scripts. This package was made in response to the deprecation of the official `lodash-cli` utility.
 
 ## Usage
 
@@ -10,7 +11,7 @@ scripts. This package was made in response to the deprecation of the offical
 
 #### npm-script
 ```bash
-npm i -D flynnham/rolldash
+npm i -D rolldash
 ```
 
 ### CLI usage (npm-script)
